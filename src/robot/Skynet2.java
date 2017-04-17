@@ -2,7 +2,14 @@ package robot;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
 import robocode.*;
@@ -10,13 +17,7 @@ import robocode.util.Utils;
 
 public class Skynet2 extends AdvancedRobot implements Serializable {
 	private double firepower = 3;
-	private double totalFirepower = 0; //skal flyttes over til stats
-	private double hitrate = 0; //skal flyttes over til stats 
-	private double bulletsFired = 0; //skal flyttes over til stats
-	private double bullethits = 0; //skal flyttes over til stats
-	private int collision = 0;//skal flyttes over til stats
 	private byte scanDirection = 1;
-	private int hitwall = 0; //skal flyttes over til stats
 	private byte moveDirection = 1;
 	
 	
@@ -27,15 +28,76 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	 
 
 	private AdvancedEnemyBot enemy = new AdvancedEnemyBot();
-	
-	public static class stats {
-		private double firepower = 3;
+	private stats stat = new stats();
+	private static ArrayList<stats> stats = new ArrayList<stats>();
+
+	public class stats {
 		private double totalFirepower = 0;
 		private double hitrate = 0;
 		private double bulletsFired = 0;
 		private double bullethits = 0;
 		private int collision = 0;
 		private int hitwall = 0;
+		private  ArrayList<stats> statList = new ArrayList<stats>();
+		
+		public stats() {
+			stats.add(this);
+		}
+		public double getTotalFirepower() {
+			return totalFirepower;
+		}
+		public void addTotalFirepower(double firepower) {
+			this.totalFirepower += firepower;
+		}
+		public double getHitrate() {
+			return hitrate;
+		}
+		public void updateHitrate() {
+			this.hitrate = this.bullethits/this.bulletsFired;
+		}
+		public double getBulletsFired() {
+			return bulletsFired;
+		}
+		public void addBulletsFired() {
+			this.bulletsFired = this.bulletsFired+1;
+		}
+		public double getBullethits() {
+			return bullethits;
+		}
+		public void addBullethits() {
+			this.bullethits = this.bullethits+1;
+		}
+		public int getCollision() {
+			return collision;
+		}
+		public void addCollision() {
+			this.collision = this.collision+1;
+		}
+		public int getHitwall() {
+			return hitwall;
+		}
+		public void setHitwall() {
+			this.hitwall = this.hitwall+1;
+		}
+
+	}
+	public class fileWriter {
+		private stats stats;
+
+		public fileWriter(stats stats) {
+			try {
+				FileOutputStream outStream = new FileOutputStream(getClass().getResource("stats.ser").getPath());
+				ObjectOutputStream objOutStream = new ObjectOutputStream(outStream);
+				objOutStream.writeObject(this.stats);
+				objOutStream.close();
+				outStream.close();
+			} catch (FileNotFoundException e) {
+				out.println("Filen finnes ikke");
+			} catch (IOException e) {
+				out.println("Kan ikke åpne objektstrøm til fil");
+				
+			}
+		}
 
 	}
 	public class EnemyBot {
@@ -158,7 +220,9 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	        sought = fiendeHashMap.keySet().iterator().next();
 	    }
 	}
-	
+	public void onRoundEnded(RoundEndedEvent event) {
+		out.println("runde over");
+	}
 	public void onRobotDeath(RobotDeathEvent e) {
 		
 		//Fjerner den døde motstanderen fra fiendeHashMap
@@ -206,28 +270,24 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	}
 	
 	public void onHitWall(HitWallEvent e) {
-		hitwall++;
+		stat.addCollision();
 		moveDirection *= -1;
 	}
 	
 	public void onBulletHit(BulletHitEvent event) {
-		bullethits++;
-		bulletsFired++;
-		totalFirepower += firepower;
-		hitrate = bullethits/bulletsFired;
+		stat.addBullethits();
+		stat.addBulletsFired();
+		stat.addTotalFirepower(firepower);
 
 	}
 
 	public void onBulletHitBullet(BulletHitBulletEvent event) {
-		bulletsFired++;
-		totalFirepower += firepower;
-		hitrate = bullethits/bulletsFired;
+		stat.addBulletsFired();
+		stat.addTotalFirepower(firepower);
 	}
 	public void onBulletMissed(BulletMissedEvent event) {
-		bulletsFired++;
-		totalFirepower += firepower;
-		if(bullethits != 0)
-			hitrate = bulletsFired / bullethits;
+		stat.addBulletsFired();
+		stat.addTotalFirepower(firepower);
 	}
 	
 	public double normalizeBearing(double angle) {
@@ -257,16 +317,18 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	}
 	
 	public void onBattleEnded(BattleEndedEvent event) {
-		out.println("Hitrate: " + hitrate);
-		out.println("avg firepower: " + totalFirepower/bulletsFired);
-		out.println("Bullets Fired: " + bulletsFired);
-		out.println("Bullets hit: " + bullethits);
-		out.println("Collision: " + collision); 
-		out.println("Wall collisions: " + hitwall);
+		stat.updateHitrate();
+		out.println("Hitrate: " + stat.getHitrate());
+		out.println("avg firepower: " + stat.getTotalFirepower()/stat.getBulletsFired());
+		out.println("Bullets Fired: " + stat.getBulletsFired());
+		out.println("Bullets hit: " + stat.getBullethits());
+		out.println("Collision: " + stat.getCollision()); 
+		out.println("Wall collisions: " + stat.getCollision()
+);
 	}
 	
 	public void onHitRobot(HitRobotEvent e) {
-		collision++;
+		stat.addCollision();
 	}
 
 }
