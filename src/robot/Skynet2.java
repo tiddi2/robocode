@@ -133,7 +133,7 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	public void run() {
 
 		//VI må velge farger gutter
-		//setColors(Color.red,Color.blue,Color.green); // body,gun,radar
+		setColors(Color.red,Color.blue,Color.white); // body,gun,radar
 		
 		//Radar setup
 		skannRetning = 1;
@@ -150,16 +150,12 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		
 		//Radar greier som jeg må lære meg
 		String name = e.getName();
-	    LinkedHashMap<String, Double> ehm = fiendeHashMap;
-	    out.println(e.getName());
-	    out.println(fiendeHashMap.toString());
+	    fiendeHashMap.put(name, getHeadingRadians() + e.getBearingRadians());
 	 
-	    ehm.put(name, getHeadingRadians() + e.getBearingRadians());
-	 
-	    if ((name == sought || sought == null) && ehm.size() == getOthers()) {
-	    	skannRetning = Utils.normalRelativeAngle(ehm.values().iterator().next()
+	    if ((name == sought || sought == null) && fiendeHashMap.size() == getOthers()) {
+	    	skannRetning = Utils.normalRelativeAngle(fiendeHashMap.values().iterator().next()
 	            - getRadarHeadingRadians());
-	        sought = ehm.keySet().iterator().next();
+	        sought = fiendeHashMap.keySet().iterator().next();
 	    }
 	}
 	
