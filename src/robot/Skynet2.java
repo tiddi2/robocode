@@ -1,11 +1,12 @@
-//does it work?
 package robot;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.Serializable;
+import java.util.LinkedHashMap;
 
 import robocode.*;
+import robocode.util.Utils;
 
 public class Skynet2 extends AdvancedRobot implements Serializable {
 	private double firepower = 3;
@@ -17,9 +18,16 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	private byte scanDirection = 1;
 	private int hitwall = 0; //skal flyttes over til stats
 	private byte moveDirection = 1;
+	
+	
+	//Variabler for radar
+	static double skannRetning;
+	static LinkedHashMap<String, Double> fiendeHashMap;
+	static Object sought;
 	 
 
 	private AdvancedEnemyBot enemy = new AdvancedEnemyBot();
+	
 	public static class stats {
 		private double firepower = 3;
 		private double totalFirepower = 0;
@@ -126,20 +134,40 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 
 		//VI må velge farger gutter
 		//setColors(Color.red,Color.blue,Color.green); // body,gun,radar
+		
+		//Radar setup
+		skannRetning = 1;
+		fiendeHashMap = new LinkedHashMap<String, Double>(5, 2, true);
+		
 		while(true) {
-			setTurnRadarRight(360 * scanDirection);
+			doRadar();
 			doGun();
 			doMove();
 		}
 	}
 	
 	public void onScannedRobot(ScannedRobotEvent e) {
-	
+		String name = e.getName();
+	    LinkedHashMap<String, Double> ehm = fiendeHashMap;
+	    out.println(e.getName());
+	    out.println(fiendeHashMap.toString());
+	 
+	    ehm.put(name, getHeadingRadians() + e.getBearingRadians());
+	 
+	    if ((name == sought || sought == null) && ehm.size() == getOthers()) {
+	    	skannRetning = Utils.normalRelativeAngle(ehm.values().iterator().next()
+	            - getRadarHeadingRadians());
+	        sought = ehm.keySet().iterator().next();
+	    }
 	}
 	
 	public void onRobotDeath(RobotDeathEvent e) {
 		
+		//Fjerner den døde motstanderen fra fiendeHashMap
+		fiendeHashMap.remove(e.getName());
+	    sought = null;
 	}
+	
 	public void doGun() {
 		if (enemy.none())
 			return;
@@ -164,9 +192,15 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 			setFire(firepower);
 		}
 	}
-	public void doMove() {
-			
+	
+	public void doMove() {			
 
+	}
+	
+	public void doRadar(){
+		//Beveger radaren maksimalt i retningen bestemt av skannRetning
+		setTurnRadarRightRadians(skannRetning * Double.POSITIVE_INFINITY);
+        scan();
 	}
 
 	public void onHitByBullet(HitByBulletEvent e) {
