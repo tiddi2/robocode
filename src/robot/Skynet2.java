@@ -2,22 +2,15 @@ package robot;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.net.URL;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
+
 
 import robocode.*;
 import robocode.util.Utils;
+import robot.Skynet2.enemies.AdvancedEnemyBot;
 
-public class Skynet2 extends AdvancedRobot implements Serializable {
+public class Skynet2 extends AdvancedRobot {
 	private double firepower = 3;
-	private byte scanDirection = 1;
 	private byte moveDirection = 1;
 	private enemies fiender;
 	
@@ -25,13 +18,10 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	//Variabler for radar
 	private double skannRetning;
 	private Object target;
-	 
+	private AdvancedEnemyBot activeTarget;
 
 	private stats stat = new stats();
-	private static ArrayList<stats> stats = new ArrayList<stats>();
-
 	public class stats {
-		private double firepower = 3;
 		private double totalFirepower = 0;
 		private double hitrate = 0;
 		private double bulletsFired = 0;
@@ -39,9 +29,6 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		private int collision = 0;
 		private int hitwall = 0;
 		
-		public stats() {
-			stats.add(this);
-		}
 		public double getTotalFirepower() {
 			return totalFirepower;
 		}
@@ -80,25 +67,7 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		}
 
 	}
-	public class fileWriter {
-		private stats stats;
 
-		public fileWriter(stats stats) {
-			try {
-				FileOutputStream outStream = new FileOutputStream(getClass().getResource("stats.ser").getPath());
-				ObjectOutputStream objOutStream = new ObjectOutputStream(outStream);
-				objOutStream.writeObject(this.stats);
-				objOutStream.close();
-				outStream.close();
-			} catch (FileNotFoundException e) {
-				out.println("Filen finnes ikke");
-			} catch (IOException e) {
-				out.println("Kan ikke åpne objektstrøm til fil");
-				
-			}
-		}
-
-	}
 	
 	public class enemies {
 		
@@ -236,12 +205,16 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		
 		while(true) {
 			doRadar();
-			//doGun();
+			doGun(activeTarget);
 			doMove();
 		}
 	}
 	
 	public void onScannedRobot(ScannedRobotEvent e) {
+		
+		
+		//Sjekk om vi blir skutt mot
+		//http://robowiki.net/wiki/Dodging_Bullets
 		
 		//Radar greier som jeg må lære meg
 		String name = e.getName();
@@ -255,14 +228,28 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		}
 		
 		
-	 
+		
+		//gå gjennom array, finn nærmeste
+		//sjekk om det er verdt å bytte active target
+		
+		
+		
+		
 	    if ((name == target || target == null) && fiender.getFiendeHashMap().size() == getOthers()) {
 	    	skannRetning = Utils.normalRelativeAngle(fiender.getFiendeHashMap().values().iterator().next().getRadarDouble() - getRadarHeadingRadians());
 	    	target = fiender.getFiendeHashMap().keySet().iterator().next();
 	    }
 	}
 	public void onRoundEnded(RoundEndedEvent event) {
+		stat.updateHitrate();
+		out.println("Hitrate: " + stat.getHitrate());
+		out.println("avg firepower: " + stat.getTotalFirepower()/stat.getBulletsFired());
+		out.println("Bullets Fired: " + stat.getBulletsFired());
+		out.println("Bullets hit: " + stat.getBullethits());
+		out.println("Collision: " + stat.getCollision()); 
+		out.println("Wall collisions: " + stat.getCollision());
 		out.println("runde over");
+	
 	}
 	public void onRobotDeath(RobotDeathEvent e) {
 		
@@ -271,30 +258,28 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		target = null;
 	}
 	
-	/*public void doGun() {
-		if (enemy.none())
-			return;
+	public void doGun(AdvancedEnemyBot activeTarget) {
 		
 		// calculate firepower based on distance
-		firepower = Math.min(800 / enemy.getDistance(), 3);
+		firepower = Math.min(800 / activeTarget.getDistance(), 3);
 		// calculate speed of bullet
 		double bulletSpeed = 20 - firepower * 3;
 		// distance = rate * time, solved for time
-		long time = (long)(enemy.getDistance() / bulletSpeed);
+		long time = (long)(activeTarget.getDistance() / bulletSpeed);
 
 		// calculate gun turn to predicted x,y location
-		double futureX = enemy.getFutureX(time);
-		double futureY = enemy.getFutureY(time);
+		double futureX = activeTarget.getFutureX(time);
+		double futureY = activeTarget.getFutureY(time);
 		double absDeg = absoluteBearing(getX(), getY(), futureX, futureY);
 		// turn the gun to the predicted x,y location
 		setTurnGunRight(normalizeBearing(absDeg - getGunHeading()));
 		//Stå på tvers av target sånn at det er enklest å dodge
-		setTurnRight(enemy.getBearing() + 90);
+		setTurnRight(activeTarget.getBearing() + 90);
 		
 		if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 5) {
 			setFire(firepower);
 		}
-	}*/
+	}
 	
 	public void doMove() {			
 
@@ -307,15 +292,19 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	}
 
 	public void onHitByBullet(HitByBulletEvent e) {
+		//snur
 		moveDirection *= -1;
 	}
 	
 	public void onHitWall(HitWallEvent e) {
+		//oppdaterer statistikk
 		stat.addCollision();
+		//snur
 		moveDirection *= -1;
 	}
 	
 	public void onBulletHit(BulletHitEvent event) {
+		//oppdaterer statistikk
 		stat.addBullethits();
 		stat.addBulletsFired();
 		stat.addTotalFirepower(firepower);
@@ -323,10 +312,12 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	}
 
 	public void onBulletHitBullet(BulletHitBulletEvent event) {
+		//oppdaterer statistikk
 		stat.addBulletsFired();
 		stat.addTotalFirepower(firepower);
 	}
 	public void onBulletMissed(BulletMissedEvent event) {
+		//oppdaterer statistikk
 		stat.addBulletsFired();
 		stat.addTotalFirepower(firepower);
 	}
@@ -357,18 +348,13 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		return bearing;
 	}
 	
-	public void onBattleEnded(BattleEndedEvent event) {
-		stat.updateHitrate();
-		out.println("Hitrate: " + stat.getHitrate());
-		out.println("avg firepower: " + stat.getTotalFirepower()/stat.getBulletsFired());
-		out.println("Bullets Fired: " + stat.getBulletsFired());
-		out.println("Bullets hit: " + stat.getBullethits());
-		out.println("Collision: " + stat.getCollision()); 
-		out.println("Wall collisions: " + stat.getCollision()
-);
+	public void onBattleEnded(BattleEndedEvent e)
+	{
+	    
 	}
 	
 	public void onHitRobot(HitRobotEvent e) {
+		//oppdaterer statistikk
 		stat.addCollision();
 	}
 
