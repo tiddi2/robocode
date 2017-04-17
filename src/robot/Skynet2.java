@@ -19,14 +19,13 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	private int hitwall = 0; //skal flyttes over til stats
 	private byte moveDirection = 1;
 	
+	private enemies fiender;
+	
 	
 	//Variabler for radar
-	static double skannRetning;
-	static LinkedHashMap<String, Double> fiendeHashMap;
-	static Object sought;
+	private double skannRetning;
+	private Object target;
 	 
-
-	private AdvancedEnemyBot enemy = new AdvancedEnemyBot();
 	
 	public static class stats {
 		private double firepower = 3;
@@ -38,96 +37,129 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		private int hitwall = 0;
 
 	}
-	public class EnemyBot {
-		double bearing;
-		double distance;
-		double energy;
-		double heading;
-		double velocity;
-		String name;
+	
+	public class enemies {
+		
+		private LinkedHashMap<String, AdvancedEnemyBot> fiendeHashMap;
+		
+		public LinkedHashMap<String, AdvancedEnemyBot> getFiendeHashMap(){
+			return fiendeHashMap;
+		}
+		
+		public AdvancedEnemyBot getBotByName(String name){
+			return fiendeHashMap.get(name);
+		}
+		
+		public void insertBot(ScannedRobotEvent e){
+			fiendeHashMap.put(e.getName(), new AdvancedEnemyBot());
+		}
+		
+		public enemies(){
+			fiendeHashMap = new LinkedHashMap<String, AdvancedEnemyBot>(5, 2, true);
+		}
+		
+		public class EnemyBot {
+			double bearing;
+			double distance;
+			double energy;
+			double heading;
+			double velocity;
+			String name;
+					
+			public double getBearing(){
+				return bearing;		
+			}
+			public double getDistance(){
+				return distance;
+			}
+			public double getEnergy(){
+				return energy;
+			}
+			public double getHeading(){
+				return heading;
+			}
+			public double getVelocity(){
+				return velocity;
+			}
+			public String getName(){
+				return name;
+			}
+			public void update(ScannedRobotEvent bot){
+				bearing = bot.getBearing();
+				distance = bot.getDistance();
+				energy = bot.getEnergy();
+				heading = bot.getHeading();
+				velocity = bot.getVelocity();
+				name = bot.getName();
+			}
+			public void reset(){
+				bearing = 0.0;
+				distance =0.0;
+				energy= 0.0;
+				heading =0.0;
+				velocity = 0.0;
+				name = null;
+			}	
+			public Boolean none(){
+				if (name == null || name == "")
+					return true;
+				else
+					return false;
+			}	
+			public EnemyBot(){
+				reset();
+			}
+		}
+		public class AdvancedEnemyBot extends EnemyBot{
+
+			private double x, y, radarDouble;
+			
+			public double getX(){
+				return x;
+			}
+			
+			public double getY(){
+				return y;
+			}
+			
+			public double getRadarDouble(){
+				return radarDouble;
+			}
+			
+			public void setRadarDouble(double _radarDouble){
+				radarDouble = _radarDouble;
+			}
+			
+			public void reset(){
+				super.reset();
+				x = 0;
+				y = 0;
+			}
+			
+			public AdvancedEnemyBot(){
+				reset();
+			}
+			
+			public void update(ScannedRobotEvent e, AdvancedRobot robot){
+				super.update(e);
+				double absBearingDeg= (robot.getHeading() + e.getBearing());
+				radarDouble = robot.getHeadingRadians() + e.getBearingRadians();
+				if (absBearingDeg <0) absBearingDeg +=360;				
+							
+				x = robot.getX() + Math.sin(Math.toRadians(absBearingDeg)) * e.getDistance();
+				y = robot.getY() + Math.cos(Math.toRadians(absBearingDeg)) * e.getDistance();
 				
-		public double getBearing(){
-			return bearing;		
-		}
-		public double getDistance(){
-			return distance;
-		}
-		public double getEnergy(){
-			return energy;
-		}
-		public double getHeading(){
-			return heading;
-		}
-		public double getVelocity(){
-			return velocity;
-		}
-		public String getName(){
-			return name;
-		}
-		public void update(ScannedRobotEvent bot){
-			bearing = bot.getBearing();
-			distance = bot.getDistance();
-			energy = bot.getEnergy();
-			heading = bot.getHeading();
-			velocity = bot.getVelocity();
-			name = bot.getName();
-		}
-		public void reset(){
-			bearing = 0.0;
-			distance =0.0;
-			energy= 0.0;
-			heading =0.0;
-			velocity = 0.0;
-			name = null;
-		}	
-		public Boolean none(){
-			if (name == null || name == "")
-				return true;
-			else
-				return false;
-		}	
-		public EnemyBot(){
-			reset();
-		}
-	}
-	public class AdvancedEnemyBot extends EnemyBot{
-		private double x, y;
-		
-		public double getX(){
-			return x;
-		}
-		
-		public double getY(){
-			return y;
-		}
-		
-		public void reset(){
-			super.reset();
-			x = 0;
-			y = 0;
-		}
-		
-		public AdvancedEnemyBot(){
-			reset();
-		}
-		
-		public void update(ScannedRobotEvent e, Robot robot){
-			super.update(e);
-			double absBearingDeg= (robot.getHeading() + e.getBearing());
-			if (absBearingDeg <0) absBearingDeg +=360;
+			}
 			
-			x = robot.getX() + Math.sin(Math.toRadians(absBearingDeg)) * e.getDistance();
-			y = robot.getY() + Math.cos(Math.toRadians(absBearingDeg)) * e.getDistance();
+			public double getFutureX(long when){
+				return x + Math.sin(Math.toRadians(getHeading())) * getVelocity() * when;
+			}
 			
+			public double getFutureY(long when ){
+				return y + Math.cos(Math.toRadians(getHeading())) * getVelocity() * when;
+			}
 		}
-		
-		public double getFutureX(long when){
-			return x + Math.sin(Math.toRadians(getHeading())) * getVelocity() * when;
-		}
-		
-		public double getFutureY(long when ){
-			return y + Math.cos(Math.toRadians(getHeading())) * getVelocity() * when;
-		}
+
 	}
 	
 	public void run() {
@@ -135,13 +167,14 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		//VI må velge farger gutter
 		setColors(Color.red,Color.blue,Color.white); // body,gun,radar
 		
+		fiender = new enemies();
+		
 		//Radar setup
 		skannRetning = 1;
-		fiendeHashMap = new LinkedHashMap<String, Double>(5, 2, true);
 		
 		while(true) {
 			doRadar();
-			doGun();
+			//doGun();
 			doMove();
 		}
 	}
@@ -150,23 +183,31 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		
 		//Radar greier som jeg må lære meg
 		String name = e.getName();
-	    fiendeHashMap.put(name, getHeadingRadians() + e.getBearingRadians());
+		
+		if(fiender.getBotByName(name) != null){
+			fiender.getBotByName(name).update(e, this);
+		}
+		else{
+			fiender.insertBot(e);
+			fiender.getBotByName(name).update(e, this);
+		}
+		
+		
 	 
-	    if ((name == sought || sought == null) && fiendeHashMap.size() == getOthers()) {
-	    	skannRetning = Utils.normalRelativeAngle(fiendeHashMap.values().iterator().next()
-	            - getRadarHeadingRadians());
-	        sought = fiendeHashMap.keySet().iterator().next();
+	    if ((name == target || target == null) && fiender.getFiendeHashMap().size() == getOthers()) {
+	    	skannRetning = Utils.normalRelativeAngle(fiender.getFiendeHashMap().values().iterator().next().getRadarDouble() - getRadarHeadingRadians());
+	    	target = fiender.getFiendeHashMap().keySet().iterator().next();
 	    }
 	}
 	
 	public void onRobotDeath(RobotDeathEvent e) {
 		
 		//Fjerner den døde motstanderen fra fiendeHashMap
-		fiendeHashMap.remove(e.getName());
-	    sought = null;
+		fiender.getFiendeHashMap().remove(e.getName());
+		target = null;
 	}
 	
-	public void doGun() {
+	/*public void doGun() {
 		if (enemy.none())
 			return;
 		
@@ -189,7 +230,7 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 		if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 5) {
 			setFire(firepower);
 		}
-	}
+	}*/
 	
 	public void doMove() {			
 
