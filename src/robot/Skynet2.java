@@ -14,6 +14,7 @@ public class Skynet2 extends AdvancedRobot {
 	private double firepower = 3;
 	private byte moveDirection = 1;
 	private enemies fiender;
+	private RobotStatus robotStatus;
 	
 	
 	//Variabler for radar
@@ -340,6 +341,10 @@ public class Skynet2 extends AdvancedRobot {
 		//oppdaterer statistikk
 		stat.addBulletsFired();
 		stat.addTotalFirepower(firepower);
+	}
+	
+	public void onStatus(StatusEvent e){
+		this.robotStatus = e.getStatus();
 	}
 	
 	public double normalizeBearing(double angle) {
