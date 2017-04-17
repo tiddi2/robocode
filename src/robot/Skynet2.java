@@ -147,6 +147,8 @@ public class Skynet2 extends AdvancedRobot implements Serializable {
 	}
 	
 	public void onScannedRobot(ScannedRobotEvent e) {
+		
+		//Radar greier som jeg må lære meg
 		String name = e.getName();
 	    LinkedHashMap<String, Double> ehm = fiendeHashMap;
 	    out.println(e.getName());
