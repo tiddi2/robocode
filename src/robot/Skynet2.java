@@ -2,8 +2,9 @@ package robot;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
-
+import java.util.Map;
 
 import robocode.*;
 import robocode.util.Utils;
@@ -87,6 +88,21 @@ public class Skynet2 extends AdvancedRobot {
 		
 		public enemies(){
 			fiendeHashMap = new LinkedHashMap<String, AdvancedEnemyBot>(5, 2, true);
+		}
+		
+		public AdvancedEnemyBot findClosest(){
+			double currentClosest = Double.POSITIVE_INFINITY;
+			AdvancedEnemyBot currentClosestEnemy = null;
+			
+			for(Map.Entry<String, AdvancedEnemyBot> entry : fiendeHashMap.entrySet()) {
+			    AdvancedEnemyBot value = entry.getValue();
+			    if(value.getDistance() < currentClosest){
+			    	currentClosest = value.getDistance();
+			    	currentClosestEnemy = value;
+			    }
+			}
+			
+			return currentClosestEnemy;
 		}
 		
 		public class EnemyBot {
@@ -229,7 +245,7 @@ public class Skynet2 extends AdvancedRobot {
 		
 		
 		
-		//gå gjennom array, finn nærmeste
+		activeTarget = fiender.findClosest();
 		//sjekk om det er verdt å bytte active target
 		
 		
@@ -259,6 +275,10 @@ public class Skynet2 extends AdvancedRobot {
 	}
 	
 	public void doGun(AdvancedEnemyBot activeTarget) {
+		
+		if(activeTarget == null){
+			return;
+		}
 		
 		// calculate firepower based on distance
 		firepower = Math.min(800 / activeTarget.getDistance(), 3);
