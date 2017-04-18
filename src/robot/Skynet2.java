@@ -2,7 +2,6 @@ package robot;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -14,7 +13,6 @@ public class Skynet2 extends AdvancedRobot {
 	private double firepower = 3;
 	private byte moveDirection = 1;
 	private enemies fiender;
-	private RobotStatus robotStatus;
 	
 	
 	//Variabler for radar
@@ -91,19 +89,13 @@ public class Skynet2 extends AdvancedRobot {
 			fiendeHashMap = new LinkedHashMap<String, AdvancedEnemyBot>(5, 2, true);
 		}
 		
-		public AdvancedEnemyBot findClosest(){
-			double currentClosest = Double.POSITIVE_INFINITY;
-			AdvancedEnemyBot currentClosestEnemy = null;
-			
+		public void findClosest(AdvancedEnemyBot activeTarget){
 			for(Map.Entry<String, AdvancedEnemyBot> entry : fiendeHashMap.entrySet()) {
 			    AdvancedEnemyBot value = entry.getValue();
-			    if(value.getDistance() < currentClosest){
-			    	currentClosest = value.getDistance();
-			    	currentClosestEnemy = value;
+			    if(value.getDistance() < activeTarget.getDistance()-50){
+			    	activeTarget = value;
 			    }
 			}
-			
-			return currentClosestEnemy;
 		}
 		
 		public class EnemyBot {
@@ -162,6 +154,13 @@ public class Skynet2 extends AdvancedRobot {
 
 			private double x, y, radarDouble;
 			
+			@Override
+			public String toString() {
+				return name+  "[x=" + x + ", y=" + y + ", radarDouble=" + radarDouble + ", bearing=" + bearing
+						+ ", distance=" + distance + ", energy=" + energy + ", heading=" + heading + ", velocity="
+						+ velocity + "]";
+			}
+
 			public double getX(){
 				return x;
 			}
@@ -243,10 +242,12 @@ public class Skynet2 extends AdvancedRobot {
 			fiender.insertBot(e);
 			fiender.getBotByName(name).update(e, this);
 		}
+		out.print(fiender.getBotByName(name));
+
 		
 		
 		
-		activeTarget = fiender.findClosest();
+		fiender.findClosest(activeTarget);
 		//sjekk om det er verdt å bytte active target
 		
 		
@@ -341,10 +342,6 @@ public class Skynet2 extends AdvancedRobot {
 		//oppdaterer statistikk
 		stat.addBulletsFired();
 		stat.addTotalFirepower(firepower);
-	}
-	
-	public void onStatus(StatusEvent e){
-		this.robotStatus = e.getStatus();
 	}
 	
 	public double normalizeBearing(double angle) {
