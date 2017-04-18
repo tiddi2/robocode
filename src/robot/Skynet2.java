@@ -109,7 +109,7 @@ public class Skynet2 extends AdvancedRobot {
 		
 		
 		//Metode som finner den nærmeste fienden
-		private AdvancedEnemyBot findClosest(){ 
+		public AdvancedEnemyBot findClosest(){ 
 		      double currentClosest = Double.POSITIVE_INFINITY; 
 		      AdvancedEnemyBot currentClosestEnemy = null; 
 		       
@@ -294,6 +294,9 @@ public class Skynet2 extends AdvancedRobot {
 		//Fjerner den døde motstanderen fra fiendeHashMap
 		fiender.getFiendeHashMap().remove(e.getName());
 		target = null;
+		if(e.getName() == activeTarget.getName()){
+			activeTarget = null;
+		}
 	}
 	
 	public void doGun(AdvancedEnemyBot activeTarget) {
