@@ -330,8 +330,42 @@ public class Skynet2 extends AdvancedRobot {
 	}
 	
 	public void doMove() {			
-
+		moveToPoint(15.0,15.0);
 	}
+	
+	public void moveToPoint(double x, double y){
+		//retingen man peker
+		double heading = (fitInRange(robotStatus.getHeading(), 360, 0, 0, 360) + 90) % 360;
+		out.println("Heading: " + heading);
+		
+		out.println("X: " + getX() + " Y: " + getY());
+		
+		//Vektoren til målet
+		double dx = x - getX();
+		double dy = y - getY();
+		
+		//vinkelen man vil peke
+		//double wantedHeading = fitInRange(Math.toDegrees(Math.atan2(dx, dy)),-180,180,0,360) + 180 % 360;
+		double wantedHeading = Math.toDegrees(Math.atan2(dx, dy));
+		out.println("wantedheading: " + wantedHeading);
+		
+		
+		//roter riktig vinkel 
+		double movAngle = wantedHeading - heading % 180;
+		if(movAngle != 0){
+			out.println("movAngle: " + movAngle);
+			turnLeft(movAngle);
+		}
+		
+		//Beveg lengde
+		double length = Math.sqrt(dx*dx+dy*dy);
+		out.println("length: " + length);
+		ahead(length);
+	}
+	
+	public double fitInRange(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
+        return ((limitMax - limitMin) * (valueIn - baseMin) / (baseMax - baseMin)) + limitMin;
+    }
 	
 	public void doRadar(){
 		//Beveger radaren maksimalt i retningen bestemt av skannRetning
