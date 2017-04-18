@@ -89,14 +89,39 @@ public class Skynet2 extends AdvancedRobot {
 			fiendeHashMap = new LinkedHashMap<String, AdvancedEnemyBot>(5, 2, true);
 		}
 		
-		public void findClosest(AdvancedEnemyBot activeTarget){
+		public AdvancedEnemyBot findClosest(AdvancedEnemyBot activeTarget){
+			
+			//Hvis den ikke har noe activeTarget, finn den nærmeste
+			if(activeTarget == null){
+				return findClosest();
+			}
+			
+			//Hvis den har ett target, sjekk om det er verdt å bytte, dete forekommer om fienden er nærmere enn 50 pixler i forhold til active target
 			for(Map.Entry<String, AdvancedEnemyBot> entry : fiendeHashMap.entrySet()) {
 			    AdvancedEnemyBot value = entry.getValue();
 			    if(value.getDistance() < activeTarget.getDistance()-50){
-			    	activeTarget = value;
+			    	return value;
 			    }
 			}
+			
+			return activeTarget;
 		}
+		
+		
+		//Metode som finner den nærmeste fienden
+		private AdvancedEnemyBot findClosest(){ 
+		      double currentClosest = Double.POSITIVE_INFINITY; 
+		      AdvancedEnemyBot currentClosestEnemy = null; 
+		       
+		      for(Map.Entry<String, AdvancedEnemyBot> entry : fiendeHashMap.entrySet()) { 
+		          AdvancedEnemyBot value = entry.getValue(); 
+		          if(value.getDistance() < currentClosest){ 
+		            currentClosest = value.getDistance(); 
+		            currentClosestEnemy = value; 
+		          } 
+		      } 
+		      return currentClosestEnemy; 
+		    } 
 		
 		public class EnemyBot {
 			double bearing;
@@ -232,7 +257,6 @@ public class Skynet2 extends AdvancedRobot {
 		//Sjekk om vi blir skutt mot
 		//http://robowiki.net/wiki/Dodging_Bullets
 		
-		//Radar greier som jeg må lære meg
 		String name = e.getName();
 		
 		if(fiender.getBotByName(name) != null){
@@ -242,12 +266,8 @@ public class Skynet2 extends AdvancedRobot {
 			fiender.insertBot(e);
 			fiender.getBotByName(name).update(e, this);
 		}
-		out.print(fiender.getBotByName(name));
-
-		
-		
-		
-		fiender.findClosest(activeTarget);
+				
+		activeTarget = fiender.findClosest(activeTarget);
 		//sjekk om det er verdt å bytte active target
 		
 		
@@ -277,7 +297,6 @@ public class Skynet2 extends AdvancedRobot {
 	}
 	
 	public void doGun(AdvancedEnemyBot activeTarget) {
-		
 		if(activeTarget == null){
 			return;
 		}
