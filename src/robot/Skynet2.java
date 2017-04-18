@@ -13,6 +13,8 @@ public class Skynet2 extends AdvancedRobot {
 	private double firepower = 3;
 	private byte moveDirection = 1;
 	private enemies fiender;
+	private RobotStatus robotStatus;
+
 	
 	
 	//Variabler for radar
@@ -294,6 +296,8 @@ public class Skynet2 extends AdvancedRobot {
 		//Fjerner den døde motstanderen fra fiendeHashMap
 		fiender.getFiendeHashMap().remove(e.getName());
 		target = null;
+		
+		//Hvis activeTarget var den som døde, sett activetarget til null
 		if(e.getName() == activeTarget.getName()){
 			activeTarget = null;
 		}
@@ -370,6 +374,10 @@ public class Skynet2 extends AdvancedRobot {
 		while (angle >  180) angle -= 360;
 		while (angle < -180) angle += 360;
 		return angle;
+	}
+	
+	public void onStatus(StatusEvent e){
+		robotStatus = e.getStatus();
 	}
 	
 	double absoluteBearing(double x1, double y1, double x2, double y2) {
