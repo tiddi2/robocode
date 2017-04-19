@@ -14,9 +14,7 @@ public class Skynet2 extends AdvancedRobot {
 	private byte moveDirection = 1;
 	private enemies fiender;
 	private RobotStatus robotStatus;
-
-	
-	
+	private int routeNumber =0;
 	//Variabler for radar
 	private double skannRetning;
 	private Object target;
@@ -30,7 +28,7 @@ public class Skynet2 extends AdvancedRobot {
 		private double bullethits = 0;
 		private int collision = 0;
 		private int hitwall = 0;
-		
+
 		public double getTotalFirepower() {
 			return totalFirepower;
 		}
@@ -69,46 +67,43 @@ public class Skynet2 extends AdvancedRobot {
 		}
 
 	}
-
-	
 	public class enemies {
-		
+
 		private LinkedHashMap<String, AdvancedEnemyBot> fiendeHashMap;
-		
+
 		public LinkedHashMap<String, AdvancedEnemyBot> getFiendeHashMap(){
 			return fiendeHashMap;
 		}
-		
+
 		public AdvancedEnemyBot getBotByName(String name){
 			return fiendeHashMap.get(name);
 		}
-		
+
 		public void insertBot(ScannedRobotEvent e){
 			fiendeHashMap.put(e.getName(), new AdvancedEnemyBot());
 		}
-		
+
 		public enemies(){
 			fiendeHashMap = new LinkedHashMap<String, AdvancedEnemyBot>(5, 2, true);
 		}
-		
+
 		public AdvancedEnemyBot findClosest(AdvancedEnemyBot activeTarget){
-			
-			//Hvis den ikke har noe activeTarget, finn den nærmeste
+
+			//Hvis den ikke har noe activeTarget, finn den nï¿½rmeste
 			if(activeTarget == null){
 				return findClosest();
 			}
-			
-			//Hvis den har ett target, sjekk om det er verdt å bytte, dete forekommer om fienden er nærmere enn 50 pixler i forhold til active target
+
+			//Hvis den har ett target, sjekk om det er verdt ï¿½ bytte, dete forekommer om fienden er nï¿½rmere enn 50 pixler i forhold til active target
 			for(Map.Entry<String, AdvancedEnemyBot> entry : fiendeHashMap.entrySet()) {
 			    AdvancedEnemyBot value = entry.getValue();
 			    if(value.getDistance() < activeTarget.getDistance()-50){
 			    	return value;
 			    }
 			}
-			
+
 			return activeTarget;
-		}
-		
+		}	
 		
 		//Metode som finner den nærmeste fienden
 		public AdvancedEnemyBot findClosest(){ 
@@ -125,6 +120,7 @@ public class Skynet2 extends AdvancedRobot {
 		      return currentClosestEnemy; 
 		    } 
 		
+
 		public class EnemyBot {
 			double bearing;
 			double distance;
@@ -132,9 +128,9 @@ public class Skynet2 extends AdvancedRobot {
 			double heading;
 			double velocity;
 			String name;
-					
+
 			public double getBearing(){
-				return bearing;		
+				return bearing;
 			}
 			public double getDistance(){
 				return distance;
@@ -166,13 +162,13 @@ public class Skynet2 extends AdvancedRobot {
 				heading =0.0;
 				velocity = 0.0;
 				name = null;
-			}	
+			}
 			public Boolean none(){
 				if (name == null || name == "")
 					return true;
 				else
 					return false;
-			}	
+			}
 			public EnemyBot(){
 				reset();
 			}
@@ -180,7 +176,7 @@ public class Skynet2 extends AdvancedRobot {
 		public class AdvancedEnemyBot extends EnemyBot{
 
 			private double x, y, radarDouble;
-			
+
 			@Override
 			public String toString() {
 				return name+  "[x=" + x + ", y=" + y + ", radarDouble=" + radarDouble + ", bearing=" + bearing
@@ -191,76 +187,76 @@ public class Skynet2 extends AdvancedRobot {
 			public double getX(){
 				return x;
 			}
-			
+
 			public double getY(){
 				return y;
 			}
-			
+
 			public double getRadarDouble(){
 				return radarDouble;
 			}
-			
+
 			public void setRadarDouble(double _radarDouble){
 				radarDouble = _radarDouble;
 			}
-			
+
 			public void reset(){
 				super.reset();
 				x = 0;
 				y = 0;
 			}
-			
+
 			public AdvancedEnemyBot(){
 				reset();
 			}
-			
+
 			public void update(ScannedRobotEvent e, AdvancedRobot robot){
 				super.update(e);
 				double absBearingDeg= (robot.getHeading() + e.getBearing());
 				radarDouble = robot.getHeadingRadians() + e.getBearingRadians();
-				if (absBearingDeg <0) absBearingDeg +=360;				
-							
+				if (absBearingDeg <0) absBearingDeg +=360;
+
 				x = robot.getX() + Math.sin(Math.toRadians(absBearingDeg)) * e.getDistance();
 				y = robot.getY() + Math.cos(Math.toRadians(absBearingDeg)) * e.getDistance();
-				
+
 			}
-			
+
 			public double getFutureX(long when){
 				return x + Math.sin(Math.toRadians(getHeading())) * getVelocity() * when;
 			}
-			
+
 			public double getFutureY(long when ){
 				return y + Math.cos(Math.toRadians(getHeading())) * getVelocity() * when;
 			}
 		}
 
 	}
-	
+
 	public void run() {
 
-		//VI må velge farger gutter
+		//VI mï¿½ velge farger gutter
 		setColors(Color.red,Color.blue,Color.white); // body,gun,radar
-		
+
 		fiender = new enemies();
-		
+
 		//Radar setup
 		skannRetning = 1;
-		
+
 		while(true) {
 			doRadar();
 			doGun(activeTarget);
 			doMove();
 		}
 	}
-	
+
 	public void onScannedRobot(ScannedRobotEvent e) {
-		
-		
+
+
 		//Sjekk om vi blir skutt mot
 		//http://robowiki.net/wiki/Dodging_Bullets
-		
+
 		String name = e.getName();
-		
+
 		if(fiender.getBotByName(name) != null){
 			fiender.getBotByName(name).update(e, this);
 		}
@@ -268,17 +264,17 @@ public class Skynet2 extends AdvancedRobot {
 			fiender.insertBot(e);
 			fiender.getBotByName(name).update(e, this);
 		}
-				
+
 		activeTarget = fiender.findClosest(activeTarget);
-		//sjekk om det er verdt å bytte active target
-		
-		
-		
-		
+		//sjekk om det er verdt ï¿½ bytte active target
+
+
 	    if ((name == target || target == null) && fiender.getFiendeHashMap().size() == getOthers()) {
 	    	skannRetning = Utils.normalRelativeAngle(fiender.getFiendeHashMap().values().iterator().next().getRadarDouble() - getRadarHeadingRadians());
 	    	target = fiender.getFiendeHashMap().keySet().iterator().next();
 	    }
+	    
+	    
 	}
 	public void onRoundEnded(RoundEndedEvent event) {
 		stat.updateHitrate();
@@ -286,14 +282,14 @@ public class Skynet2 extends AdvancedRobot {
 		out.println("avg firepower: " + stat.getTotalFirepower()/stat.getBulletsFired());
 		out.println("Bullets Fired: " + stat.getBulletsFired());
 		out.println("Bullets hit: " + stat.getBullethits());
-		out.println("Collision: " + stat.getCollision()); 
+		out.println("Collision: " + stat.getCollision());
 		out.println("Wall collisions: " + stat.getCollision());
 		out.println("runde over");
-	
+
 	}
 	public void onRobotDeath(RobotDeathEvent e) {
-		
-		//Fjerner den døde motstanderen fra fiendeHashMap
+
+		//Fjerner den dï¿½de motstanderen fra fiendeHashMap
 		fiender.getFiendeHashMap().remove(e.getName());
 		target = null;
 		
@@ -302,12 +298,12 @@ public class Skynet2 extends AdvancedRobot {
 			activeTarget = null;
 		}
 	}
-	
+
 	public void doGun(AdvancedEnemyBot activeTarget) {
 		if(activeTarget == null){
 			return;
 		}
-		
+
 		// calculate firepower based on distance
 		firepower = Math.min(800 / activeTarget.getDistance(), 3);
 		// calculate speed of bullet
@@ -321,46 +317,51 @@ public class Skynet2 extends AdvancedRobot {
 		double absDeg = absoluteBearing(getX(), getY(), futureX, futureY);
 		// turn the gun to the predicted x,y location
 		setTurnGunRight(normalizeBearing(absDeg - getGunHeading()));
-		//Stå på tvers av target sånn at det er enklest å dodge
+		//Stï¿½ pï¿½ tvers av target sï¿½nn at det er enklest ï¿½ dodge
 		setTurnRight(activeTarget.getBearing() + 90);
-		
+
 		if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 5) {
 			setFire(firepower);
 		}
-	}
+	}	
 	
-	public void doMove() {			
-		moveToPoint(15.0,15.0);
-	}
-	
-	public void moveToPoint(double x, double y){
-		//retingen man peker
-		double heading = (fitInRange(robotStatus.getHeading(), 360, 0, 0, 360) + 90) % 360;
-		out.println("Heading: " + heading);
-		
-		out.println("X: " + getX() + " Y: " + getY());
-		
-		//Vektoren til målet
-		double dx = x - getX();
-		double dy = y - getY();
-		
-		//vinkelen man vil peke
-		//double wantedHeading = fitInRange(Math.toDegrees(Math.atan2(dx, dy)),-180,180,0,360) + 180 % 360;
-		double wantedHeading = Math.toDegrees(Math.atan2(dx, dy));
-		out.println("wantedheading: " + wantedHeading);
+	public void doMove() {	
+		double x = getX();
+		double y = getY();
 		
 		
-		//roter riktig vinkel 
-		double movAngle = wantedHeading - heading % 180;
-		if(movAngle != 0){
-			out.println("movAngle: " + movAngle);
-			turnLeft(movAngle);
+		//Midlertidig kommandosystem
+		//Kan for eksempel si routeNumber-- hvis vi blir skutt mot, slik at vi skifter retning
+		if(routeNumber == 0) {
+			moveToPoint(60,60);
 		}
-		
-		//Beveg lengde
-		double length = Math.sqrt(dx*dx+dy*dy);
-		out.println("length: " + length);
-		ahead(length);
+		else if(routeNumber == 1) {
+			moveToPoint((int)(getBattleFieldWidth()-60) ,60);
+		}
+		else if(routeNumber == 2) {
+			moveToPoint((int)(getBattleFieldWidth()-60) ,(int)(getBattleFieldHeight()-60));
+		}
+		else if(routeNumber == 3) {
+			moveToPoint(60,(int)(getBattleFieldHeight()-60));
+		}
+		else if(routeNumber == 4) {
+			routeNumber = 0;
+		}
+	}
+	
+	public void moveToPoint(int x, int y){
+		if(Math.floor(getX()) == x && Math.floor(getY()) == y) {
+	    	routeNumber++;
+	    	out.println("fremme");
+	    	return;
+	    }
+		 double a;
+		    setTurnRightRadians(Math.tan(
+		        a = Math.atan2(x -= (int) getX(), y -= (int) getY()) 
+		              - getHeadingRadians()));
+		    setAhead(Math.hypot(x, y) * Math.cos(a));
+		    out.println((int)Math.floor(getX()));
+		    
 	}
 	
 	public double fitInRange(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
@@ -377,14 +378,14 @@ public class Skynet2 extends AdvancedRobot {
 		//snur
 		moveDirection *= -1;
 	}
-	
+
 	public void onHitWall(HitWallEvent e) {
 		//oppdaterer statistikk
 		stat.addCollision();
 		//snur
 		moveDirection *= -1;
 	}
-	
+
 	public void onBulletHit(BulletHitEvent event) {
 		//oppdaterer statistikk
 		stat.addBullethits();
@@ -403,7 +404,7 @@ public class Skynet2 extends AdvancedRobot {
 		stat.addBulletsFired();
 		stat.addTotalFirepower(firepower);
 	}
-	
+
 	public double normalizeBearing(double angle) {
 		while (angle >  180) angle -= 360;
 		while (angle < -180) angle += 360;
@@ -420,7 +421,7 @@ public class Skynet2 extends AdvancedRobot {
 		double hyp = Point2D.distance(x1, y1, x2, y2);
 		double arcSin = Math.toDegrees(Math.asin(xo / hyp));
 		double bearing = 0;
-	
+
 		if (xo > 0 && yo > 0) { // both pos: lower-Left
 			bearing = arcSin;
 		} else if (xo < 0 && yo > 0) { // x neg, y pos: lower-right
@@ -430,15 +431,15 @@ public class Skynet2 extends AdvancedRobot {
 		} else if (xo < 0 && yo < 0) { // both neg: upper-right
 			bearing = 180 - arcSin; // arcsin is negative here, actually 180 + ang
 		}
-	
+
 		return bearing;
 	}
-	
+
 	public void onBattleEnded(BattleEndedEvent e)
 	{
-	    
+
 	}
-	
+
 	public void onHitRobot(HitRobotEvent e) {
 		//oppdaterer statistikk
 		stat.addCollision();
