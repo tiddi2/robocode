@@ -2,8 +2,6 @@ package robot;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 import robocode.*;
 import robocode.util.Utils;
@@ -12,7 +10,7 @@ public class Skynet2 extends AdvancedRobot {
 	private double firepower = 3;
 	private byte moveDirection = 1;
 	private Enemies fiender;
-	private RobotStatus robotStatus;
+	//private RobotStatus robotStatus;
 	private byte isChanged = 0;
 	//Variabler for radar
 	private double skannRetning;
@@ -205,7 +203,7 @@ public class Skynet2 extends AdvancedRobot {
 	}
 	
 	public void onStatus(StatusEvent e){
-		robotStatus = e.getStatus();
+		//robotStatus = e.getStatus();
 	}
 	
 	double absoluteBearing(double x1, double y1, double x2, double y2) {

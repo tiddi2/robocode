@@ -3,7 +3,6 @@ package robot;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import robocode.AdvancedRobot;
 import robocode.ScannedRobotEvent;
 
 public class Enemies {
