@@ -290,7 +290,6 @@ public class Skynet2 extends AdvancedRobot {
 		out.println("Collision: " + stat.getCollision());
 		out.println("Wall collisions: " + stat.getCollision());
 		out.println("runde over");
-
 	}
 	public void onRobotDeath(RobotDeathEvent e) {
 
@@ -323,7 +322,7 @@ public class Skynet2 extends AdvancedRobot {
 		// turn the gun to the predicted x,y location
 		setTurnGunRight(normalizeBearing(absDeg - getGunHeading()));
 		//Står på tvers av target sånn at det er enklest å dodge
-		setTurnRight(activeTarget.getBearing() + 90 +10);
+		setTurnRight(activeTarget.getBearing() + 90 + (30 * -moveDirection));
 		if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 5) {
 			setFire(firepower);
 		}
@@ -407,6 +406,7 @@ public class Skynet2 extends AdvancedRobot {
 	public void onHitWall(HitWallEvent e) {
 		//oppdaterer statistikk
 		stat.addCollision();
+		out.println("au");
 		//snur
 		moveDirection *= -1;
 	}
