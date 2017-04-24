@@ -15,8 +15,6 @@ public class Skynet2 extends AdvancedRobot {
 	private enemies fiender;
 	private RobotStatus robotStatus;
 	private byte isChanged = 0;
-	
-	
 	//Variabler for radar
 	private double skannRetning;
 	private Object target;
@@ -30,9 +28,7 @@ public class Skynet2 extends AdvancedRobot {
 		private double bullethits = 0;
 		private int collision = 0;
 		private int hitwall = 0;
-		private double distanceMoved = 0;
-		private double damageDealt = 0;
-		private double damageTaken = 0;
+
 		public double getTotalFirepower() {
 			return totalFirepower;
 		}
@@ -109,7 +105,7 @@ public class Skynet2 extends AdvancedRobot {
 			return activeTarget;
 		}	
 		
-		//Metode som finner den nærmeste fienden
+		//Metode som finner den nï¿½rmeste fienden
 		public AdvancedEnemyBot findClosest(){ 
 		      double currentClosest = Double.POSITIVE_INFINITY; 
 		      AdvancedEnemyBot currentClosestEnemy = null; 
@@ -132,8 +128,6 @@ public class Skynet2 extends AdvancedRobot {
 			double heading;
 			double velocity;
 			String name;
-			double damageTaken; //hvor mye damage har vi gjort på denne roboten
-			double hittedRate; //hvor mange % av skuddene som vi har skutt mot den har vi truffet med
 
 			public double getBearing(){
 				return bearing;
@@ -144,9 +138,6 @@ public class Skynet2 extends AdvancedRobot {
 			public double getEnergy(){
 				return energy;
 			}
-			public void setEnergy(double energy){
-				this.energy = energy;
-}
 			public double getHeading(){
 				return heading;
 			}
@@ -263,12 +254,7 @@ public class Skynet2 extends AdvancedRobot {
 
 		//Sjekk om vi blir skutt mot
 		//http://robowiki.net/wiki/Dodging_Bullets
-		if(fiender.getBotByName(e.getName()) != null && e.getEnergy() < fiender.getBotByName(e.getName()).getEnergy()) {
-			//TODO: Lag funksjonalitet som gjør at roboten unnviker skuddet
-			
-			out.println("fiende skyter");
-			moveDirection *= -1;
-        }
+
 		String name = e.getName();
 
 		if(fiender.getBotByName(name) != null){
@@ -307,7 +293,7 @@ public class Skynet2 extends AdvancedRobot {
 		fiender.getFiendeHashMap().remove(e.getName());
 		target = null;
 		
-		//Hvis activeTarget var den som døde, sett activetarget til null
+		//Hvis activeTarget var den som dï¿½de, sett activetarget til null
 		if(e.getName() == activeTarget.getName()){
 			activeTarget = null;
 		}
@@ -339,37 +325,53 @@ public class Skynet2 extends AdvancedRobot {
 		}
 	}	
 	
-	public void doMove() {
-		double x = getX();
-		double y= getY();
+	public void doMove() {			
+		moveToPoint(15.0,15.0);
+	}
+	
+	public void moveToPoint(double x, double y){
+		//retingen man peker
+		double heading = (fitInRange(robotStatus.getHeading(), 360, 0, 0, 360) + 90) % 360;
+		out.println("Heading: " + heading);
 		
-		if (y <= 70 || y >= 530 || x <= 70 || x >= 730) {
-
-			if (isChanged == 0) {
-
-				moveDirection *= -1;
-				isChanged = 1;
-			}
-
-		} else {
-			isChanged = 0;
+		
+		//Vektoren til mï¿½let
+		double dx = x - getX();
+		double dy = y - getY();
+		
+		//vinkelen man vil peke
+		//double wantedHeading = fitInRange(Math.toDegrees(Math.atan2(dx, dy)),-180,180,0,360) + 180 % 360;
+		double wantedHeading = Math.toDegrees(Math.atan2(dx, dy));
+		out.println("wantedheading: " + wantedHeading);
+		
+		
+		//roter riktig vinkel 
+		double movAngle = wantedHeading - heading % 180;
+		if(movAngle != 0){
+			out.println("movAngle: " + movAngle);
+			turnLeft(movAngle);
 		}
-		setAhead(50 * moveDirection);
+		
+		//Beveg lengde
+		double length = Math.sqrt(dx*dx+dy*dy);
+		out.println("length: " + length);
+		ahead(length);
 	}
 	
 	public void moveToPoint(int x, int y){
-	    if(Math.floor(getX()) == x && Math.floor(getY()) == y) {
-	        out.println("fremme");
-	        return;
+		if(Math.floor(getX()) == x && Math.floor(getY()) == y) {
+	    	routeNumber++;
+	    	out.println("fremme");
+	    	return;
 	    }
-	     double a;
-	        setTurnRightRadians(Math.tan(
-	            a = Math.atan2(x -= (int) getX(), y -= (int) getY())
-	                  - getHeadingRadians()));
-	        setAhead(Math.hypot(x, y) * Math.cos(a) * moveDirection);
+		 double a;
+		    setTurnRightRadians(Math.tan(
+		        a = Math.atan2(x -= (int) getX(), y -= (int) getY()) 
+		              - getHeadingRadians()));
+		    setAhead(Math.hypot(x, y) * Math.cos(a));
+		    out.println((int)Math.floor(getX()));
+		    
 	}
-	
-
 	
 	public double fitInRange(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
         return ((limitMax - limitMin) * (valueIn - baseMin) / (baseMax - baseMin)) + limitMin;
@@ -394,7 +396,6 @@ public class Skynet2 extends AdvancedRobot {
 	}
 
 	public void onBulletHit(BulletHitEvent event) {
-		fiender.getBotByName(event.getName()).setEnergy(event.getEnergy());
 		//oppdaterer statistikk
 		stat.addBullethits();
 		stat.addBulletsFired();
@@ -449,7 +450,6 @@ public class Skynet2 extends AdvancedRobot {
 	}
 
 	public void onHitRobot(HitRobotEvent e) {
-	    fiender.getBotByName(e.getName()).setEnergy(e.getEnergy());
 		//oppdaterer statistikk
 		stat.addCollision();
 	}
