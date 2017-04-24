@@ -254,7 +254,12 @@ public class Skynet2 extends AdvancedRobot {
 
 		//Sjekk om vi blir skutt mot
 		//http://robowiki.net/wiki/Dodging_Bullets
-
+		if(fiender.getBotByName(e.getName()) != null && e.getEnergy() < fiender.getBotByName(e.getName()).getEnergy()) { 
+		      //TODO: Lag funksjonalitet som gjør at roboten unnviker skudde
+		       
+			 out.println("fiende skyter");
+			 moveDirection *= -1; 
+		 } 
 		String name = e.getName();
 
 		if(fiender.getBotByName(name) != null){
@@ -317,16 +322,28 @@ public class Skynet2 extends AdvancedRobot {
 		double absDeg = absoluteBearing(getX(), getY(), futureX, futureY);
 		// turn the gun to the predicted x,y location
 		setTurnGunRight(normalizeBearing(absDeg - getGunHeading()));
-		//Stï¿½ pï¿½ tvers av target sï¿½nn at det er enklest ï¿½ dodge
-		setTurnRight(activeTarget.getBearing() + 90);
-
+		//Står på tvers av target sånn at det er enklest å dodge
+		setTurnRight(activeTarget.getBearing() + 90 +10);
 		if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 5) {
 			setFire(firepower);
 		}
 	}	
 	
-	public void doMove() {			
-		moveToPoint(15.0,15.0);
+	public void doMove() {	
+		double x = getX(); 
+		double y= getY(); 
+		
+  
+		if (y <= 70 || y >= 530 || x <= 70 || x >= 730) { 
+			if (isChanged == 0) { 
+				moveDirection *= -1; 
+				isChanged = 1; 
+			}
+		} 
+		else { 
+			isChanged = 0; 
+		} 
+		setAhead(50 * moveDirection); 
 	}
 	
 	public void moveToPoint(double x, double y){
@@ -360,7 +377,6 @@ public class Skynet2 extends AdvancedRobot {
 	
 	public void moveToPoint(int x, int y){
 		if(Math.floor(getX()) == x && Math.floor(getY()) == y) {
-	    	routeNumber++;
 	    	out.println("fremme");
 	    	return;
 	    }
