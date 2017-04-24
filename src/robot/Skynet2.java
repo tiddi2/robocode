@@ -19,7 +19,7 @@ public class Skynet2 extends AdvancedRobot {
 	private double skannRetning;
 	private Object target;
 	private AdvancedEnemyBot activeTarget;
-
+	private int wallMargin = 70;
 	private stats stat = new stats();
 	public class stats {
 		private double totalFirepower = 0;
@@ -28,6 +28,8 @@ public class Skynet2 extends AdvancedRobot {
 		private double bullethits = 0;
 		private int collision = 0;
 		private int hitwall = 0;
+		private double damageDone = 0;
+		private double damageTaken = 0;
 
 		public double getTotalFirepower() {
 			return totalFirepower;
@@ -64,6 +66,18 @@ public class Skynet2 extends AdvancedRobot {
 		}
 		public void setHitwall() {
 			this.hitwall = this.hitwall+1;
+		}
+		public double getDamageTaken() {
+			return damageTaken;
+		}
+		public void addDamageTaken(double damageTaken) {
+			this.damageTaken += damageTaken;
+		}
+		public double getDamageDone() {
+			return damageDone;
+		}
+		public void addDamageDone(double damageDone) {
+			this.damageDone += damageDone;
 		}
 
 	}
@@ -332,8 +346,8 @@ public class Skynet2 extends AdvancedRobot {
 		double x = getX(); 
 		double y= getY(); 
 		
-  
-		if (y <= 70 || y >= 530 || x <= 70 || x >= 730) { 
+		
+		if (y <= 70 || y >= getBattleFieldHeight() - wallMargin || x <= 70 || x >= getBattleFieldWidth() - wallMargin) { 
 			if (isChanged == 0) { 
 				moveDirection *= -1; 
 				isChanged = 1; 
@@ -399,11 +413,16 @@ public class Skynet2 extends AdvancedRobot {
 	}
 
 	public void onHitByBullet(HitByBulletEvent e) {
-		//snur
-		moveDirection *= -1;
+		double power = e.getPower();
+		stat.addDamageTaken(power * 4 + (power > 1? 2* (power -1): 0));
+		
+		//Velger å ikke snu, basert på statistikk
+		//moveDirection *= -1;
 	}
 
 	public void onHitWall(HitWallEvent e) {
+		//stat.addDamageTaken(power * 4 + (power > 1? 2* (power -1): 0));
+
 		//oppdaterer statistikk
 		stat.addCollision();
 		out.println("au");
