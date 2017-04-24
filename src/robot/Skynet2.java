@@ -44,7 +44,7 @@ public class Skynet2 extends AdvancedRobot {
 		//Sjekk om vi blir skutt mot
 		//http://robowiki.net/wiki/Dodging_Bullets
 		if(e.getName() != null && activeTarget != null && e.getName() == activeTarget.getName() && e.getEnergy() < activeTarget.getEnergy()) { 
-		      //TODO: Lag funksjonalitet som gjør at roboten unnviker skudde
+		      //TODO: Lag funksjonalitet som gjï¿½r at roboten unnviker skudde
 			moveDirection *= -1;
 			out.println("active Target skyter");
 		 }
@@ -111,7 +111,7 @@ public class Skynet2 extends AdvancedRobot {
 		double absDeg = absoluteBearing(getX(), getY(), futureX, futureY);
 		// turn the gun to the predicted x,y location
 		setTurnGunRight(normalizeBearing(absDeg - getGunHeading()));
-		//Står på tvers av target sånn at det er enklest å dodge
+		//Stï¿½r pï¿½ tvers av target sï¿½nn at det er enklest ï¿½ dodge
 		setTurnRight(activeTarget.getBearing() + 90 + (30 * -moveDirection));
 		if (getGunHeat() == 0 && Math.abs(getGunTurnRemaining()) < 5) {
 			setFire(firepower);
@@ -164,7 +164,7 @@ public class Skynet2 extends AdvancedRobot {
 		double power = e.getPower();
 		stat.addDamageTaken(power * 4 + (power > 1? 2* (power -1): 0));
 		
-		//Velger å ikke snu, basert på statistikk
+		//Velger ï¿½ ikke snu, basert pï¿½ statistikk
 		//moveDirection *= -1;
 	}
 
