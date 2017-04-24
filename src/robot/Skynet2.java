@@ -360,7 +360,6 @@ public class Skynet2 extends AdvancedRobot {
 	
 	public void moveToPoint(int x, int y){
 		if(Math.floor(getX()) == x && Math.floor(getY()) == y) {
-	    	routeNumber++;
 	    	out.println("fremme");
 	    	return;
 	    }
