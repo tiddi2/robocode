@@ -14,7 +14,13 @@ public class Skynet2 extends AdvancedRobot {
 	private byte moveDirection = 1;
 	private enemies fiender;
 	private RobotStatus robotStatus;
+<<<<<<< HEAD
 	private int routeNumber =0;
+=======
+	private byte isChanged = 0;
+	
+	
+>>>>>>> master
 	//Variabler for radar
 	private double skannRetning;
 	private Object target;
@@ -325,11 +331,39 @@ public class Skynet2 extends AdvancedRobot {
 		}
 	}	
 	
+<<<<<<< HEAD
 	public void doMove() {	
 		double x = getX();
 		double y = getY();
+=======
+	public void doMove() {
+		double x = getX();
+		double y= getY();
+		
+		if (y <= 70 || y >= 530 || x <= 70 || x >= 730) {
+
+			if (isChanged == 0) {
+
+				moveDirection *= -1;
+				isChanged = 1;
+			}
+
+		} else {
+			isChanged = 0;
+		}
+		setAhead(50 * moveDirection);
+	}
+	
+	public void moveToPoint(double x, double y){
+		//retingen man peker
+		double heading = (fitInRange(robotStatus.getHeading(), 360, 0, 0, 360) + 90) % 360;
+		out.println("Heading: " + heading);
+		
+		out.println("X: " + getX() + " Y: " + getY());
+>>>>>>> master
 		
 		
+<<<<<<< HEAD
 		//Midlertidig kommandosystem
 		//Kan for eksempel si routeNumber-- hvis vi blir skutt mot, slik at vi skifter retning
 		if(routeNumber == 0) {
@@ -362,6 +396,26 @@ public class Skynet2 extends AdvancedRobot {
 		    setAhead(Math.hypot(x, y) * Math.cos(a));
 		    out.println((int)Math.floor(getX()));
 		    
+=======
+		//vinkelen man vil peke
+		//double wantedHeading = fitInRange(Math.toDegrees(Math.atan2(dx, dy)),-180,180,0,360) + 180 % 360;
+		double wantedHeading = Math.toDegrees(Math.atan2(dx, dy));
+		out.println("wantedheading: " + wantedHeading);
+		
+		
+		//roter riktig vinkel 
+		double movAngle = wantedHeading - heading % 180;
+		if(movAngle != 0){
+			out.println("movAngle: " + movAngle);
+			turnLeft(movAngle);
+
+		}
+		
+		//Beveg lengde
+		double length = Math.sqrt(dx*dx+dy*dy);
+		out.println("length: " + length);
+		//ahead(length);
+>>>>>>> master
 	}
 	
 	public double fitInRange(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
