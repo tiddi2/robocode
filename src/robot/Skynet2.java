@@ -14,7 +14,7 @@ public class Skynet2 extends AdvancedRobot {
 	private byte moveDirection = 1;
 	private enemies fiender;
 	private RobotStatus robotStatus;
-
+	private byte isChanged = 0;
 	
 	
 	//Variabler for radar
@@ -329,8 +329,22 @@ public class Skynet2 extends AdvancedRobot {
 		}
 	}
 	
-	public void doMove() {			
-		moveToPoint(15.0,15.0);
+	public void doMove() {
+		double x = getX();
+		double y= getY();
+		
+		if (y <= 70 || y >= 530 || x <= 70 || x >= 730) {
+
+			if (isChanged == 0) {
+
+				moveDirection *= -1;
+				isChanged = 1;
+			}
+
+		} else {
+			isChanged = 0;
+		}
+		setAhead(50 * moveDirection);
 	}
 	
 	public void moveToPoint(double x, double y){
@@ -355,12 +369,13 @@ public class Skynet2 extends AdvancedRobot {
 		if(movAngle != 0){
 			out.println("movAngle: " + movAngle);
 			turnLeft(movAngle);
+
 		}
 		
 		//Beveg lengde
 		double length = Math.sqrt(dx*dx+dy*dy);
 		out.println("length: " + length);
-		ahead(length);
+		//ahead(length);
 	}
 	
 	public double fitInRange(final double valueIn, final double baseMin, final double baseMax, final double limitMin, final double limitMax) {
